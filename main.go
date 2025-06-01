@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
+	_ "github.com/lib/pq"
 )
 
 type Person struct {
@@ -17,6 +20,17 @@ type Person struct {
 }
 
 func main() {
+	// Setup a connection to postgres
+	connStr := "postgres://postgres:pass@localhost:5432/gopgtest?sslmode=disable"
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	if err = db.Ping(); err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Println("Redis trial")
 
 	client := redis.NewClient(&redis.Options{
