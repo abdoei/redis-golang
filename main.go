@@ -30,6 +30,8 @@ func main() {
 	if err = db.Ping(); err != nil {
 		log.Fatal(err)
 	}
+	// Create a database
+	createProductTable(db)
 
 	fmt.Println("Redis trial")
 
@@ -69,4 +71,20 @@ func main() {
 	}
 
 	fmt.Printf("value retrieved = %s", val)
+}
+
+func createProductTable(db *sql.DB) {
+	qurey := `
+	create table if not exists product (
+		id serial primary key,
+		name varchar(100) not null,
+		price numeric(6,2) not null,
+		available boolean,
+		created timestamp default NOW()
+	)`
+
+	_, err := db.Exec(qurey)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
