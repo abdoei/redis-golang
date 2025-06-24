@@ -1,0 +1,47 @@
+name: Docker Compose and Go Run
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Set up Go environment
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.24
+
+    # Set up Docker Compose
+    - name: Start services with Docker Compose
+      run: docker-compose up -d
+
+    # Wait for PostgreSQL and Redis to be ready
+    - name: Wait for services to be ready
+      run: |
+        until docker exec postgres pg_isready -U postgres; do
+          echo "Waiting for PostgreSQL to be ready..."
+          sleep 5
+        done
+        until nc -z localhost 6379; do
+          echo "Waiting for Redis to be ready..."
+          sleep 5
+        done
+
+    # Run the Go application
+    - name: Run Go application
+      run: go run ./main.go
+
+    # Tear down Docker Compose
+    - name: Tear down Docker Compose
+      if: always()
+      run: docker-compose down
